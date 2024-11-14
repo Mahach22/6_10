@@ -1,0 +1,33 @@
+services:
+  postgres:
+    container_name: postgres_mahach
+    image: postgres:14.13-alpine3.20
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=mahach
+      - POSTGRES_PASSWORD=mahach
+      - POSTGRES_DB=gitinovasov
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "mahach" ]
+      interval: 5s
+      timeout: 15s
+      retries: 7
+    networks:
+       - postgres_network
+
+  python-script:
+    container_name: pyt_script
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: python app.py
+    networks:
+      - postgres_network
+networks:
+    postgres_network:
+      name: network_postgres
+
